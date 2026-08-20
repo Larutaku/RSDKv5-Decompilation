@@ -16,21 +16,22 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install Dependencies
-        run: |
-          vcpkg install sdl2:x64-windows-static
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
 
-      - name: Build RSDKv5
-        run: |
-          mkdir build
-          cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows-static -A x64
-          cmake --build . --config Release
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v2
+
+      - name: Restore NuGet Packages
+        run: nuget restore RSDKv5.sln
+
+      - name: Build Solution
+        run: msbuild RSDKv5.sln /p:Configuration=Release /p:Platform=x64
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: RSDKv5-windows-x64
           path: |
-            build/Release/RSDKv5.exe
-            build/Release/*.dll
+            **/Release/*.exe
+            **/Release/*.dll
